@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="x-icon" href="{{ url_for('static', filename='assets/icon.png') }}">
+    <title>Wind Wave Direction - Weather App</title>
+    <link rel="stylesheet" href="./static/landing.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <style>
+        /* Map container styling */
+        #map-container {
+            height: 500px; /* Adjust height as needed */
+            width: 100%;
+        }
+
+        /* Full screen styles */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Header -->
+    <header>
+        <div class="logo" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='assets/wind.png') }}" class="logo-img">
+            <h1>Wind Wave Direction</h1>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{{ url_for('static', filename='assets/bg.jpg') }}') center/cover no-repeat;">
+        <div class="hero-content">
+            <h2>Your Ultimate Wind and Wave Direction App</h2>
+            <p>Get real-time wind, wave, and weather updates for any location.</p>
+            <a href="#about" class="btn">Explore</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2>App Features</h2>
+        <div class="feature-grid">
+            <div class="feature">
+                <h3>Real-Time Updates</h3>
+                <p>Stay updated with real-time weather, wind, and wave direction.</p>
+            </div>
+            <div class="feature">
+                <h3>Global Coverage</h3>
+                <p>Access weather data from any location around the globe.</p>
+            </div>
+            <div class="feature">
+                <h3>Simple and Intuitive</h3>
+                <p>Our app is designed to be user-friendly and easy to navigate.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <h2>About Wind Wave Direction</h2>
+        <p>
+            Wind Wave Direction is a weather forecasting app that provides accurate wind and wave data for mariners, surfers, and anyone needing precise environmental conditions.
+        </p>
+    </section>
+
+    <!-- Map Section -->
+    <section id="map" class="map-section">
+        <h2>Interactive Weather Map</h2>
+        <div id="map-container"></div> <!-- Map will be displayed here -->
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <p>&copy; 2024 Wind Wave Direction. All rights reserved.</p>
+    </footer>
+
+    <!-- Leaflet JS for the map -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <script>
+        // Initialize the map and set its view
+        var map = L.map('map-container').setView([54.544587, 10.227487], 13); // Coordinates and zoom level
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add marker with popup
+        L.marker([54.544587, 10.227487]).addTo(map)
+            .bindPopup('Wind wave data location')
+            .openPopup();
+    </script>
+</body>
+</html>

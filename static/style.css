@@ -1,0 +1,74 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+}
+
+/* Leaflet map text customization */
+.leaflet-control-container {
+    font-size: 12px; /* Smaller font size for controls */
+}
+
+.leaflet-control-zoom,
+.leaflet-control-attribution,
+.leaflet-popup-content {
+    font-size: 12px; /* Smaller font size for map elements */
+}
+
+/* Map */
+#map {
+    background-color: #d3d3d3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    height: 450px; /* Adjusted height for better responsiveness */
+}
+
+/* Data Container */
+.data-container {
+    background-color: white; /* White background for the data container */
+    padding: 20px; /* Add some padding */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Responsive Chart Container */
+.chart-container {
+    display: flex;              /* Use flexbox for horizontal layout */
+    justify-content: flex-start; /* Align items to the start without gaps */
+    align-items: stretch;     /* Stretch items to the same height */
+    flex-wrap: wrap;          /* Allow wrapping of items */
+}
+
+/* Chart Item */
+.chart-item {
+    flex: 1;                   /* Allow each chart to grow equally */
+    min-width: 300px;         /* Minimum width for responsiveness */
+    max-width: 400px;  
+    margin-right: 10px;       /* Optional: set maximum width */
+}
+
+/* Chart Canvas */
+canvas {
+    width: 100% !important;   /* Make canvas take full width of its parent */
+    height: 150px !important; /* Set a fixed height for the charts */
+    background-color: #ffffff; /* Optional: background color for better visibility */
+}
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 768px) {
+    #map {
+        height: 300px; /* Adjust height for smaller screens */
+    }
+
+    .data-container {
+        margin-bottom: 20px; /* More space between containers */
+    }
+
+    .chart-item {
+        margin-right: 0; /* Remove right margin for smaller screens */
+        margin-bottom: 20px; /* Add bottom margin for spacing */
+    }
+}
