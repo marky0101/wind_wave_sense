@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import mysql.connector
 from mysql.connector import Error
-from werkzeug.security import generate_password_hash, check_password_hash
 from fetch import get_wind_data  # Import existing function to fetch and store data
 
 app = Flask(__name__, static_folder='static')
@@ -11,7 +10,6 @@ app.secret_key = 'your_secret_key'  # Required for flash messages
 def landing():
     return render_template('landing.html')  # Render the landing page
 
-
 @app.route('/map')
 def map_page():
     return render_template('index.html')  # Serves the map page
@@ -20,55 +18,100 @@ def map_page():
 def login():
     return render_template('login.html')  # Render the login page
 
-@app.route('/signup')
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    return render_template('signup.html')  # Render the signup page
+    if request.method == 'POST':
+        # Get the form data
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        # Check if passwords match
+        if password != confirm_password:
+            flash('Passwords do not match!', 'error')
+            return redirect(url_for('signup'))
+        
+        try:
+            # Connect to the database
+            connection = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='root1234',
+                database='wind_wave_direction'  # Replace with your actual database name
+            )
+            cursor = connection.cursor()
 
-@app.route('/submit-signup', methods=['POST'])
-def submit_signup():
-    username = request.form['username']
-    email = request.form['email']
-    password = request.form['password']
-    confirm_password = request.form['confirm_password']
+            # Insert user data into the 'user' table
+            cursor.execute('''INSERT INTO user (username, email, password)
+                              VALUES (%s, %s, %s)''', (username, email, password))  # Store the password as plain text
 
-    # Check if passwords match
-    if password != confirm_password:
-        flash("Passwords do not match!", "error")
-        return redirect(url_for('signup'))
+            # Commit the transaction
+            connection.commit()
 
-    # Hash the password using the default method
-    hashed_password = generate_password_hash(password)  # Removed the method parameter
+            flash('Signup successful! You can now log in.', 'success')
+            return redirect(url_for('login'))  # Redirect to the login page after successful signup
 
-    try:
-        connection = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='root1234',
-            database='wind_wave_direction'  # Replace with your actual database name
-        )
-        cursor = connection.cursor()
+        except Error as e:
+            print(f"[ERROR] Database error: {e}")
+            flash(f'An error occurred: {e}', 'error')
+            return redirect(url_for('signup'))
+        finally:
+            # Close the connection
+            if 'connection' in locals() and connection.is_connected():
+                cursor.close()
+                connection.close()
 
-        # Insert user data into the users table
-        cursor.execute('''INSERT INTO users (username, email, password)
-                          VALUES (%s, %s, %s)''', (username, email, hashed_password))
-        connection.commit()
-        flash("Signup successful! You can now log in.", "success")
-
-    except Error as e:
-        print(f"[ERROR] Database error: {e}")
-        flash("Signup failed! Please try again.", "error")
-    finally:
-        if 'connection' in locals() and connection.is_connected():
-            cursor.close()
-            connection.close()
-
-    return redirect(url_for('login'))  # Redirect to the login page after signup
+    # If it's a GET request, render the signup page
+    return render_template('signup.html')
 
 @app.route('/submit-login', methods=['POST'])
 def submit_login():
     username = request.form['username']
     password = request.form['password']
 
+    try:
+        # Connect to the database
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='root1234',
+            database='wind_wave_direction'
+        )
+        cursor = connection.cursor(dictionary=True)
+
+        # Query to check if the user exists and their password matches
+        cursor.execute('''SELECT * FROM user WHERE username = %s AND password = %s''', (username, password))
+        user = cursor.fetchone()  # Fetch the first result
+
+        # If the user is not found, flash an error message
+        if not user:
+            flash('Invalid username or password!', 'error')
+            return redirect(url_for('login'))  # Redirect back to login page
+
+        # Store user information in the session (this allows us to track the logged-in user)
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        flash('Login successful!', 'success')
+
+        return redirect(url_for('map_page'))  # Redirect to the admin page after successful login
+
+    except Error as e:
+        print(f"[ERROR] Database error: {e}")
+        flash(f'An error occurred: {e}', 'error')
+        return redirect(url_for('login'))
+    finally:
+        # Close the connection
+        if 'connection' in locals() and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.route('/admin')
+def admin_page():
+    return render_template('admin.html')  # Render the admin page
+
+@app.route('/users')
+def users_page():
     try:
         connection = mysql.connector.connect(
             host='localhost',
@@ -78,27 +121,89 @@ def submit_login():
         )
         cursor = connection.cursor(dictionary=True)
 
-        # Fetch the user data based on the username
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user = cursor.fetchone()
-
-        # Check if user exists and password matches
-        if user and check_password_hash(user['password'], password):
-            flash("Login successful!", "success")
-            return redirect(url_for('map_page'))  # Redirect to the map page
-
-        flash("Invalid username or password!", "error")
-        return redirect(url_for('login'))
+        # Query to get user data including the password
+        cursor.execute("SELECT id, username, email, password, created_at FROM user")  # Include password in the query
+        users = cursor.fetchall()
 
     except Error as e:
         print(f"[ERROR] Database error: {e}")
-        flash("Login failed! Please try again.", "error")
-        return redirect(url_for('login'))
-
+        users = []  # Default to an empty list if there's an error
     finally:
         if 'connection' in locals() and connection.is_connected():
             cursor.close()
             connection.close()
+
+    return render_template('users.html', users=users)
+
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='root1234',
+            database='wind_wave_direction'
+        )
+        cursor = connection.cursor(dictionary=True)
+
+        if request.method == 'POST':
+            # Get updated data from the form
+            username = request.form['username']
+            email = request.form['email']
+            password = request.form['password']
+
+            # Update query
+            cursor.execute("""
+                UPDATE user 
+                SET username = %s, email = %s, password = %s
+                WHERE id = %s
+            """, (username, email, password, user_id))
+
+            connection.commit()
+            flash('User updated successfully!', 'success')
+            return redirect(url_for('users_page'))
+
+        # Fetch the user data to pre-fill the form
+        cursor.execute("SELECT id, username, email, password FROM user WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+
+    except Error as e:
+        print(f"[ERROR] Database error: {e}")
+        flash('Error fetching user data.', 'danger')
+        return redirect(url_for('users_page'))
+    finally:
+        if 'connection' in locals() and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    return render_template('edit_user.html', user=user)
+
+@app.route('/delete_user/<int:user_id>', methods=['GET'])
+def delete_user(user_id):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='root1234',
+            database='wind_wave_direction'
+        )
+        cursor = connection.cursor()
+
+        # Delete query
+        cursor.execute("DELETE FROM user WHERE id = %s", (user_id,))
+        connection.commit()
+        flash('User deleted successfully!', 'success')
+
+    except Error as e:
+        print(f"[ERROR] Database error: {e}")
+        flash('Error deleting user.', 'danger')
+    finally:
+        if 'connection' in locals() and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    return redirect(url_for('users_page'))
+
 
 @app.route('/get-stored-data', methods=['POST'])
 def get_stored_data():

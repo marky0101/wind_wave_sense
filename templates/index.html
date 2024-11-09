@@ -11,23 +11,25 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg" style="background-color: #243642;">
-        <a class="navbar-brand text-white" href="#">Wind Wave Sense</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto"> <!-- Added me-auto to push items to the left -->
-                <li class="nav-item active">
-                    <a class="nav-link text-white" href="#">Home <span class="sr-only">(current)</span></a>
-                </li>
-            </ul>
-            <div class="navbar-nav ml-auto"> <!-- Changed to ml-auto to push logout to the far right -->
-                <a class="nav-link btn btn-danger text-white" href="{{ url_for('landing') }}">Logout</a>
-            </div>
-        </div>
-    </nav>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #243642;">
+    <a class="navbar-brand text-white" href="#">Wind Wave Sense</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item active">
+                <a class="nav-link text-white" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+        <!-- Place Logout button here, outside the main ul to push it to the end -->
+        <a class="nav-link btn btn-danger text-white ms-auto navbar-nav ml-auto" href="{{ url_for('landing') }}">Logout</a>
+    </div>
+</nav>
+
+
 
     <!-- Main Content -->
     <main class="container-fluid mt-3">
